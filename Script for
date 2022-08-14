@@ -1,0 +1,104 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local Bullet = ReplicatedStorage:WaitForChild("Bullet")
+local RaycastParameters = RaycastParams.new()
+RaycastParameters.IgnoreWater = true
+
+local Folder = Instance.new("Folder")
+Folder.Name = "Bullets"
+Folder.Parent = workspace
+
+local CanPrint = true
+local CanPrint2 = false
+local TimerStarted = false
+local CanFire = true
+local StartTime = 0
+
+local Turret = script.Parent
+local BulletSpeed = 180
+local BulletDamage = 15
+local TurretRange = 60
+local FireRate = 0.25
+
+local Stepped
+Stepped = RunService.Stepped:Connect(function()
+
+	for i, player in ipairs(Players:GetPlayers()) do
+		if player.Character ~= nil and player.Character.Humanoid.Health > 0 then
+			if player:DistanceFromCharacter(Turret.Position) <= TurretRange then
+
+				if CanPrint then
+					
+					CanPrint2 = true
+					print("Target:"..player.Name.." found")
+					CanPrint = false
+				end
+
+				if TimerStarted == false then
+					StartTime = tick()
+					TimerStarted = true
+				end
+
+				local EndTime = tick()
+
+				if EndTime - StartTime >= FireRate then
+
+					if CanFire == true then
+						CanFire = false
+
+						local RaycastResult = workspace:Raycast(Turret.Position, Turret.CFrame.LookVector*TurretRange, RaycastParameters)
+						--print("Ray fired")
+
+						if RaycastResult then
+							--print("Object hit:", RaycastResult.Instance)
+							--print("Hit position:", RaycastResult.Position)
+							--print("Surface normal at the point of intersection:", RaycastResult.Normal)
+							--print("Material hit:", RaycastResult.Material.Name)
+
+							if RaycastResult.Instance.Parent:FindFirstChild("Humanoid") then
+
+								print("Shooting target")
+
+								local NewBullet = Bullet:Clone()
+								NewBullet.Position = Turret.Position
+								NewBullet.Parent = workspace.Bullets
+								NewBullet.AssemblyLinearVelocity = Turret.CFrame.LookVector * BulletSpeed
+
+								NewBullet.Touched:Connect(function(touchingPart)
+									workspace.Bullets.Bullet:Destroy()
+									
+									if touchingPart.Parent:FindFirstChild("Humanoid") then --(touchingPart:IsA("MeshPart") or touchingPart:IsA("Part")) and touchingPart.Name ~= "Handle" and then
+
+										touchingPart.Parent:FindFirstChild("Humanoid"):TakeDamage(BulletDamage)
+									end
+								end)
+
+							else
+								print("Target obstructed")
+							end
+
+							if player:DistanceFromCharacter(Turret.Position) > TurretRange then
+								
+								print("Target out of range")
+							end
+						end
+
+						TimerStarted = false
+						CanFire = true
+					end
+				end
+
+				Turret.CFrame = CFrame.lookAt(Turret.Position, player.Character.HumanoidRootPart.Position)
+			else
+				
+				CanPrint = true
+
+				if CanPrint2 then
+					CanPrint2 = false
+					print("Target:"..player.Name.." lost")
+				end
+			end
+		end
+	end
+end)

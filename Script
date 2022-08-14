@@ -56,7 +56,7 @@ Stepped = RunService.Stepped:Connect(function()
 							--print("Surface normal at the point of intersection:", RaycastResult.Normal)
 							--print("Material hit:", RaycastResult.Material.Name)
 
-							if RaycastResult.Instance.Parent:FindFirstChild("Humanoid") then
+							if RaycastResult.Instance.Parent:FindFirstChild("Humanoid") or RaycastResult.Instance.Parent.Parent:FindFirstChild("Humanoid") then
 
 								print("Shooting target")
 
@@ -68,7 +68,7 @@ Stepped = RunService.Stepped:Connect(function()
 								NewBullet.Touched:Connect(function(touchingPart)
 									workspace.Bullets.Bullet:Destroy()
 									
-									if touchingPart.Parent:FindFirstChild("Humanoid") then --(touchingPart:IsA("MeshPart") or touchingPart:IsA("Part")) and touchingPart.Name ~= "Handle" and then
+									if touchingPart.Parent:FindFirstChild("Humanoid") then 
 
 										touchingPart.Parent:FindFirstChild("Humanoid"):TakeDamage(BulletDamage)
 									end
